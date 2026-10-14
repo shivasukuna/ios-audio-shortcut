@@ -1,0 +1,57 @@
+# ── Python ──
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+dist/
+build/
+*.egg
+
+# ── Environment ──
+.env
+.env.local
+.env.production
+
+# ── Data (never commit) ──
+data/
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+
+# ── Media (never commit) ──
+*.mp3
+*.m4a
+*.aac
+*.opus
+*.ogg
+*.flac
+*.wav
+*.webm
+*.mp4
+*.part
+*.ytdl
+
+# ── IDE ──
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# ── OS ──
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ── Docker ──
+docker-compose.override.yml
+
+# ── Coverage ──
+.coverage
+htmlcov/
+coverage.xml
+
+# ── Virtual environments ──
+.venv/
+venv/
+env/

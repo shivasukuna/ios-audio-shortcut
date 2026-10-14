@@ -1,0 +1,87 @@
+# ──────────────────────────────────────────────
+# Audio Downloader — Docker Compose Configuration
+# ──────────────────────────────────────────────
+# Usage:
+#   Local development:  docker compose up --build
+#   With HTTPS (Caddy): docker compose --profile remote up --build
+# ──────────────────────────────────────────────
+
+services:
+  # ── Main API + Worker service ──
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: audio-downloader
+    restart: unless-stopped
+    ports:
+      - "${PORT:-8000}:8000"
+    env_file:
+      - .env
+    volumes:
+      - db-data:/data/db
+      - output-data:/data/output
+      - tmp-data:/data/tmp
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health/live"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /tmp:size=100M
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: "2.0"
+        reservations:
+          memory: 256M
+          cpus: "0.5"
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # ── Caddy reverse proxy (HTTPS) ──
+  # Activated with: docker compose --profile remote up
+  caddy:
+    image: caddy:2-alpine
+    container_name: audio-downloader-caddy
+    profiles:
+      - remote
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      app:
+        condition: service_healthy
+    security_opt:
+      - no-new-privileges:true
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  db-data:
+    name: audio-downloader-db
+  output-data:
+    name: audio-downloader-output
+  tmp-data:
+    name: audio-downloader-tmp
+  caddy-data:
+    name: audio-downloader-caddy-data
+  caddy-config:
+    name: audio-downloader-caddy-config

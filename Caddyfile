@@ -1,0 +1,36 @@
+# ──────────────────────────────────────────────
+# Caddy — Reverse Proxy with Automatic HTTPS
+# ──────────────────────────────────────────────
+# Replace {$DOMAIN} with your actual domain name
+# or set the DOMAIN environment variable.
+#
+# Caddy will automatically obtain and renew
+# Let's Encrypt TLS certificates.
+# ──────────────────────────────────────────────
+
+{$DOMAIN:localhost} {
+    # Reverse proxy to the API container
+    reverse_proxy app:8000
+
+    # Security headers
+    header {
+        X-Content-Type-Options nosniff
+        X-Frame-Options DENY
+        X-XSS-Protection "1; mode=block"
+        Referrer-Policy strict-origin-when-cross-origin
+        -Server
+    }
+
+    # Request size limit (100MB for potential large responses)
+    request_body {
+        max_size 1MB
+    }
+
+    # Access logs
+    log {
+        output file /data/access.log {
+            roll_size 10mb
+            roll_keep 3
+        }
+    }
+}
