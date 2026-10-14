@@ -29,7 +29,7 @@ def event_loop():
 @pytest.fixture
 def temp_dir() -> Generator[Path, None, None]:
     """Create a temporary directory for test files."""
-    with tempfile.TemporaryDirectory(prefix="audio_test_") as tmpdir:
+    with tempfile.TemporaryDirectory(prefix="audio_test_", ignore_cleanup_errors=True) as tmpdir:
         yield Path(tmpdir)
 
 
@@ -128,12 +128,6 @@ def mock_worker_manager():
 
 
 @pytest.fixture
-def sample_youtube_url() -> str:
-    """Return a sample YouTube URL for testing."""
-    return "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
-
-
-@pytest.fixture
 def sample_instagram_url() -> str:
     """Return a sample Instagram URL for testing."""
     return "https://www.instagram.com/reel/ABC123/"
@@ -143,7 +137,7 @@ def sample_instagram_url() -> str:
 def sample_job_request() -> dict:
     """Return a sample job creation request body."""
     return {
-        "url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+        "url": "https://www.instagram.com/reel/ABC123/",
         "format": "mp3",
         "quality": "192k",
     }

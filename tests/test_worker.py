@@ -38,7 +38,7 @@ class TestWorkerManager:
         job = await create_job(
             db_path=test_settings.DB_PATH,
             url_hash="mock-hash-1",
-            source_host="www.youtube.com",
+            source_host="www.instagram.com",
             output_format="mp3",
             output_quality="192k",
         )
@@ -51,7 +51,7 @@ class TestWorkerManager:
         }
 
         with patch("app.workers.worker.download_audio", return_value=mock_result):
-            wm.submit_job(job.id, "https://www.youtube.com/watch?v=mock1")
+            wm.submit_job(job.id, "https://www.instagram.com/reel/mock1")
 
             # Wait for thread to finish
             for _ in range(50):
@@ -76,13 +76,13 @@ class TestWorkerManager:
         job = await create_job(
             db_path=test_settings.DB_PATH,
             url_hash="mock-hash-fail",
-            source_host="www.youtube.com",
+            source_host="www.instagram.com",
             output_format="mp3",
             output_quality="192k",
         )
 
         with patch("app.workers.worker.download_audio", side_effect=DownloadException("extraction_failed", "Video unavailable")):
-            wm.submit_job(job.id, "https://www.youtube.com/watch?v=fail")
+            wm.submit_job(job.id, "https://www.instagram.com/reel/fail")
 
             for _ in range(50):
                 await asyncio.sleep(0.1)

@@ -83,7 +83,7 @@ Add a **Dictionary** action at the very top to hold your deployment credentials:
   - Input: URLs from input
 - **Action**: `Otherwise`
 - **Action**: `Ask for Input`
-  - Prompt: `Enter YouTube or Instagram URL:`
+  - Prompt: `Enter Instagram Reel or Post URL:`
   - Input Type: `URL`
 - **Action**: `Set Variable`
   - Variable Name: `TargetURL`
@@ -96,16 +96,11 @@ Add a **Dictionary** action at the very top to hold your deployment credentials:
 - **Action**: `If`
   - Input: `TargetURL`
   - Condition: `does not contain`
-  - Text: `youtu`
-- **Action**: `If`
-  - Input: `TargetURL`
-  - Condition: `does not contain`
   - Text: `instagram.com`
 - **Action**: `Show Alert`
   - Title: `Unsupported Link`
-  - Message: `Please provide a valid YouTube or Instagram link.`
+  - Message: `Please provide a valid Instagram link (Reel or Post).`
 - **Action**: `Stop this shortcut`
-- **Action**: `End If`
 - **Action**: `End If`
 
 ---

@@ -48,7 +48,7 @@ class TestDownloadAudio:
 
         result = download_audio(
             job_id="test-job-id",
-            url="https://www.youtube.com/watch?v=test",
+            url="https://www.instagram.com/reel/test",
             output_format="mp3",
             output_quality="192k",
             output_dir=str(output_dir),
@@ -79,7 +79,7 @@ class TestDownloadAudio:
         with pytest.raises(DownloadException) as exc_info:
             download_audio(
                 job_id="test-job-fail",
-                url="https://www.youtube.com/watch?v=invalid",
+                url="https://www.instagram.com/reel/invalid",
                 output_format="mp3",
                 output_quality="192k",
                 output_dir=str(output_dir),
@@ -108,7 +108,7 @@ class TestDownloadAudio:
         with pytest.raises(DownloadException) as exc_info:
             download_audio(
                 job_id="test-job-nofile",
-                url="https://www.youtube.com/watch?v=test",
+                url="https://www.instagram.com/reel/test",
                 output_format="mp3",
                 output_quality="192k",
                 output_dir=str(output_dir),
@@ -148,7 +148,7 @@ class TestDownloadExceptionTypes:
         with pytest.raises(DownloadException) as exc_info:
             download_audio(
                 job_id="test-extractor-err",
-                url="https://www.youtube.com/watch?v=test",
+                url="https://www.instagram.com/reel/test",
                 output_format="mp3",
                 output_quality="192k",
                 output_dir=str(output_dir),

@@ -1,6 +1,6 @@
 # iOS Audio Shortcut Backend
 
-A lightweight, self-hosted media processing backend designed for Apple Shortcuts on iOS. Extract high-quality audio from supported YouTube and Instagram URLs directly into your iPhone's Files app.
+A lightweight, self-hosted media processing backend designed for Apple Shortcuts on iOS. Extract high-quality audio from supported Instagram Reels and Posts directly into your iPhone's Files app.
 
 ---
 
@@ -37,7 +37,7 @@ Deploy natively to Render without Docker:
 1. Open the [**iOS Shortcut Build Guide**](docs/ios-shortcut.md).
 2. Follow the step-by-step actions to build the **Audio Downloader** shortcut.
 3. Paste your Render URL and `API_TOKEN` into the shortcut's `Config` dictionary.
-4. Share any supported link from Safari, YouTube, or Instagram directly from the iOS Share Sheet.
+4. Share any Instagram Reel or Post link directly from the iOS Share Sheet.
 
 Audio is saved automatically to:
 ```text

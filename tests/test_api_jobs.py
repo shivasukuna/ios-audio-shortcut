@@ -58,7 +58,7 @@ class TestJobCreation:
     async def test_create_job_invalid_format(self, async_client: AsyncClient, auth_headers: dict):
         response = await async_client.post(
             "/api/v1/jobs",
-            json={"url": "https://www.youtube.com/watch?v=test", "format": "wav", "quality": "192k"},
+            json={"url": "https://www.instagram.com/reel/test", "format": "wav", "quality": "192k"},
             headers=auth_headers,
         )
         assert response.status_code == 422
@@ -66,10 +66,21 @@ class TestJobCreation:
     async def test_create_job_invalid_quality(self, async_client: AsyncClient, auth_headers: dict):
         response = await async_client.post(
             "/api/v1/jobs",
-            json={"url": "https://www.youtube.com/watch?v=test", "format": "mp3", "quality": "999k"},
+            json={"url": "https://www.instagram.com/reel/test", "format": "mp3", "quality": "999k"},
             headers=auth_headers,
         )
         assert response.status_code == 422
+
+    async def test_create_job_rejects_youtube(self, async_client: AsyncClient, auth_headers: dict):
+        response = await async_client.post(
+            "/api/v1/jobs",
+            json={"url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ", "format": "mp3", "quality": "192k"},
+            headers=auth_headers,
+        )
+        assert response.status_code == 400
+        data = response.json()
+        assert data["error"] == "invalid_url"
+        assert "YouTube downloads are not supported" in data["detail"]
 
     async def test_create_job_ssrf_localhost(self, async_client: AsyncClient, auth_headers: dict):
         with patch("app.api.jobs.validate_url", return_value=(False, "Host resolves to private IP")):
@@ -87,7 +98,7 @@ class TestJobCreation:
             mock_wm.submit_job.return_value = True
             response = await async_client.post(
                 "/api/v1/jobs",
-                json={"url": "https://www.youtube.com/watch?v=test"},
+                json={"url": "https://www.instagram.com/reel/test"},
                 headers=auth_headers,
             )
             assert response.status_code == 202

@@ -45,28 +45,30 @@ class TestBearerTokenVerification:
 class TestURLValidation:
     """Tests for URL validation with SSRF protection."""
 
-    ALLOWED = ["youtube.com", "www.youtube.com", "youtu.be", "instagram.com", "www.instagram.com"]
-
-    def test_valid_youtube_url(self):
-        is_valid, reason = validate_url("https://www.youtube.com/watch?v=test123", self.ALLOWED)
-        assert is_valid is True
-        assert reason == ""
-
-    def test_valid_youtu_be_url(self):
-        is_valid, reason = validate_url("https://youtu.be/test123", self.ALLOWED)
-        assert is_valid is True
+    ALLOWED = ["instagram.com", "www.instagram.com"]
 
     def test_valid_instagram_url(self):
         is_valid, reason = validate_url("https://www.instagram.com/reel/ABC123/", self.ALLOWED)
         assert is_valid is True
+        assert reason == ""
+
+    def test_reject_youtube_url(self):
+        is_valid, reason = validate_url("https://www.youtube.com/watch?v=test123", self.ALLOWED)
+        assert is_valid is False
+        assert "not supported" in reason.lower()
+
+    def test_reject_youtu_be_url(self):
+        is_valid, reason = validate_url("https://youtu.be/test123", self.ALLOWED)
+        assert is_valid is False
+        assert "not supported" in reason.lower()
 
     def test_reject_http_scheme(self):
-        is_valid, reason = validate_url("http://www.youtube.com/watch?v=test123", self.ALLOWED)
+        is_valid, reason = validate_url("http://www.instagram.com/reel/test123", self.ALLOWED)
         assert is_valid is False
         assert "https" in reason.lower() or "scheme" in reason.lower()
 
     def test_reject_ftp_scheme(self):
-        is_valid, reason = validate_url("ftp://www.youtube.com/video", self.ALLOWED)
+        is_valid, reason = validate_url("ftp://www.instagram.com/reel/test", self.ALLOWED)
         assert is_valid is False
 
     def test_reject_javascript_scheme(self):
@@ -120,7 +122,7 @@ class TestURLValidation:
         assert is_valid is False
 
     def test_reject_url_with_credentials(self):
-        is_valid, reason = validate_url("https://user:pass@www.youtube.com/watch?v=test", self.ALLOWED)
+        is_valid, reason = validate_url("https://user:pass@www.instagram.com/reel/test", self.ALLOWED)
         assert is_valid is False
 
     def test_reject_zero_ip(self):

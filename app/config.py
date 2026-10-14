@@ -59,13 +59,9 @@ class Settings(BaseSettings):
     HOST: str = "0.0.0.0"
     PORT: int = 8000
 
-    # Allowed Host Domains for Audio Extraction
+    # Allowed Host Domains for Audio Extraction (Instagram only)
     ALLOWED_HOSTS: list[str] = Field(
         default_factory=lambda: [
-            "youtube.com",
-            "www.youtube.com",
-            "m.youtube.com",
-            "youtu.be",
             "instagram.com",
             "www.instagram.com",
         ]

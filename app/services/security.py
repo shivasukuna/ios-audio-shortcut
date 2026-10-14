@@ -98,6 +98,10 @@ def validate_url(url: str, allowed_hosts: list[str]) -> tuple[bool, str]:
     except ValueError:
         pass
 
+    # Reject YouTube URLs explicitly
+    if hostname in {"youtube.com", "youtu.be"} or hostname.endswith(".youtube.com") or hostname.endswith(".youtu.be"):
+        return False, "YouTube downloads are not supported. Only Instagram URLs are supported."
+
     # 3. Hostname allowlist check
     # Normalize allowed hosts
     normalized_allowed = [h.lower() for h in allowed_hosts]

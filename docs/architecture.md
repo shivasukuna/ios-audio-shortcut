@@ -11,7 +11,7 @@ The **iOS Audio Downloader** is designed as a decoupled client-server architectu
 ```mermaid
 graph TB
     subgraph "iOS Client (iPhone)"
-        A[Safari / YouTube / Instagram App] -->|Share Sheet| B[Apple Shortcut]
+        A[Safari / Instagram App] -->|Share Sheet| B[Apple Shortcut]
         B -->|Files App API| C[Local Storage: On My iPhone]
     end
 
@@ -63,7 +63,7 @@ graph TB
 - SQLite operates in `WAL` mode (`PRAGMA journal_mode = WAL;`) allowing concurrent reads while write transactions are in progress.
 
 ### D. Comprehensive SSRF Defense
-- Allowlist of media hosts (`youtube.com`, `youtu.be`, `instagram.com`).
+- Allowlist of media hosts (`instagram.com`, `www.instagram.com`).
 - Mandatory HTTPS scheme.
 - DNS resolution inspection using `socket.getaddrinfo` to prevent DNS rebinding.
 - Strict blocklist of loopback, private, link-local, multicast, and AWS/GCP cloud metadata addresses (`169.254.169.254`).
