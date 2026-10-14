@@ -190,3 +190,68 @@ class TestLimitsEndpoint:
     async def test_get_limits_no_auth(self, async_client: AsyncClient):
         response = await async_client.get("/api/v1/limits")
         assert response.status_code == 401
+
+
+@pytest.mark.asyncio
+class TestDirectDownload:
+    """Tests for GET /api/v1/download and GET /api/v1/jobs/download."""
+
+    async def test_direct_download_success(self, async_client: AsyncClient, auth_headers: dict, temp_dir: Path):
+        fake_audio = temp_dir / "direct_song.mp3"
+        fake_audio.write_bytes(b"\xff\xfb\x90\x00" + b"\x00" * 500)
+
+        mock_result = {
+            "filename": "direct_song.mp3",
+            "filepath": str(fake_audio),
+            "size": len(fake_audio.read_bytes()),
+            "duration": 45.0,
+        }
+
+        with patch("app.api.jobs.validate_url", return_value=(True, "")), \
+             patch("app.services.downloader.download_audio", return_value=mock_result):
+            resp = await async_client.get(
+                "/api/v1/download",
+                params={"url": "https://www.instagram.com/reel/ABC123/"},
+                headers=auth_headers,
+            )
+            assert resp.status_code == 200
+            assert resp.headers.get("content-type") == "audio/mpeg"
+            assert "direct_song.mp3" in resp.headers.get("content-disposition", "")
+
+    async def test_direct_download_query_token(self, async_client: AsyncClient, temp_dir: Path):
+        fake_audio = temp_dir / "direct_song2.mp3"
+        fake_audio.write_bytes(b"\xff\xfb\x90\x00" + b"\x00" * 500)
+
+        mock_result = {
+            "filename": "direct_song2.mp3",
+            "filepath": str(fake_audio),
+            "size": len(fake_audio.read_bytes()),
+            "duration": 45.0,
+        }
+
+        with patch("app.api.jobs.validate_url", return_value=(True, "")), \
+             patch("app.services.downloader.download_audio", return_value=mock_result):
+            resp = await async_client.get(
+                "/api/v1/download",
+                params={
+                    "url": "https://www.instagram.com/reel/ABC123/",
+                    "token": "test-token-for-testing-only",
+                },
+            )
+            assert resp.status_code == 200
+
+    async def test_direct_download_unauthorized(self, async_client: AsyncClient):
+        resp = await async_client.get(
+            "/api/v1/download",
+            params={"url": "https://www.instagram.com/reel/ABC123/", "token": "wrong-token"},
+        )
+        assert resp.status_code == 401
+
+    async def test_direct_download_rejects_youtube(self, async_client: AsyncClient, auth_headers: dict):
+        resp = await async_client.get(
+            "/api/v1/download",
+            params={"url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ"},
+            headers=auth_headers,
+        )
+        assert resp.status_code == 400
+        assert "YouTube downloads are not supported" in resp.json()["detail"]

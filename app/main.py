@@ -70,12 +70,13 @@ def create_app() -> FastAPI:
 
     # ── Include routers ──
     from app.api.health import router as health_router
-    from app.api.jobs import router as jobs_router
+    from app.api.jobs import download_direct, router as jobs_router
     from app.api.limits import router as limits_router
 
     app.include_router(health_router)
     app.include_router(jobs_router)
     app.include_router(limits_router)
+    app.add_api_route("/api/v1/download", download_direct, methods=["GET"], summary="Direct audio download alias")
 
     # ── Exception handlers ──
 

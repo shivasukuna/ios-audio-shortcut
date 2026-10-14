@@ -368,3 +368,100 @@ async def delete_job(
 
     logger.info("Job deleted", extra={"job_id": job_id})
     return {"job_id": job_id, "status": "cancelled", "detail": "Job cancelled and artifacts cleaned up"}
+
+
+@router.get(
+    "/download",
+    response_class=FileResponse,
+    response_model=None,
+    summary="Direct audio download for simple iOS Shortcuts",
+)
+async def download_direct(
+    url: str = Query(..., description="Media URL to download"),
+    token: str = Query(default="", description="API Token (if not using Authorization header)"),
+    format: str = Query(default="mp3", description="Audio format (mp3, aac, opus, m4a)"),
+    quality: str = Query(default="192k", description="Audio quality (128k, 192k, 320k, best)"),
+    request: Request = None,
+    settings: Settings = Depends(get_settings),
+) -> FileResponse:
+    """Download and return audio file directly in a single request.
+
+    Designed for lightweight iOS Shortcuts without polling logic.
+    """
+    import asyncio
+    import uuid
+    from app.services.downloader import DownloadException, download_audio
+    from app.services.security import verify_bearer_token
+
+    # 1. Authentication check (Header or Query token)
+    auth_header = request.headers.get("Authorization", "") if request else ""
+    provided_token = ""
+    if auth_header.startswith("Bearer "):
+        provided_token = auth_header[7:].strip()
+    elif token:
+        provided_token = token.strip()
+
+    if not provided_token or not verify_bearer_token(provided_token, settings.API_TOKEN):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or missing API token",
+        )
+
+    # 2. URL validation
+    is_valid, reason = validate_url(url, settings.ALLOWED_HOSTS)
+    if not is_valid:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=reason,
+        )
+
+    # 3. Format and Quality validation
+    fmt = format.lower()
+    qlt = quality.lower()
+    if fmt not in settings.SUPPORTED_FORMATS:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Format '{format}' not supported. Allowed: {settings.SUPPORTED_FORMATS}",
+        )
+    if qlt not in settings.SUPPORTED_QUALITIES:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Quality '{quality}' not supported. Allowed: {settings.SUPPORTED_QUALITIES}",
+        )
+
+    # 4. Process download in background thread
+    job_id = f"direct-{uuid.uuid4().hex[:10]}"
+    try:
+        result = await asyncio.to_thread(
+            download_audio,
+            job_id=job_id,
+            url=url,
+            output_format=fmt,
+            output_quality=qlt,
+            output_dir=settings.OUTPUT_DIR,
+            temp_dir=settings.TEMP_DIR,
+            max_filesize_mb=settings.MAX_FILE_SIZE_MB,
+            max_duration_seconds=settings.MAX_DURATION_SECONDS,
+        )
+    except DownloadException as exc:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Extraction failed: {exc.message}",
+        )
+    except Exception as exc:
+        logger.exception("Direct download unexpected failure", extra={"error": str(exc)})
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Internal download failure: {exc}",
+        )
+
+    filepath = Path(result["filepath"])
+    filename = result["filename"]
+    mime_type = _get_mime_type(filename)
+
+    return FileResponse(
+        path=str(filepath),
+        media_type=mime_type,
+        filename=filename,
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
