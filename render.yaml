@@ -18,11 +18,11 @@ services:
       - key: API_TOKEN
         generateValue: true
       - key: OUTPUT_DIR
-        value: /var/data/output
+        value: data/output
       - key: TEMP_DIR
-        value: /tmp/audio-downloader
+        value: data/tmp
       - key: DB_PATH
-        value: /var/data/db/jobs.db
+        value: data/db/jobs.db
       - key: LOG_LEVEL
         value: INFO
       - key: RATE_LIMIT_REQUESTS
@@ -33,7 +33,3 @@ services:
         value: "100"
       - key: MAX_DURATION_SECONDS
         value: "1800"
-    disk:
-      name: audio-data
-      mountPath: /var/data
-      sizeGB: 1

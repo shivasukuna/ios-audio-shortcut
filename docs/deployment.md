@@ -18,7 +18,7 @@ Render provides native Python hosting with automatic HTTPS, zero server maintena
    - **Environment**: Python
    - **Build Command**: `bash build.sh`
    - **Start Command**: `bash start.sh`
-   - **Persistent Disk**: 1 GB mounted at `/var/data`
+   - **Plan**: Free
 5. Render will automatically generate a secure `API_TOKEN` and deploy your application.
 6. Copy the generated URL (`https://ios-audio-downloader.onrender.com`) and your `API_TOKEN` from **Environment Variables** into your iOS Shortcut configuration.
 
@@ -37,23 +37,19 @@ If you prefer configuring through the Render UI:
    - **Runtime**: `Python 3`
    - **Build Command**: `bash build.sh`
    - **Start Command**: `bash start.sh`
-   - **Instance Type**: Free or Starter ($7/mo)
+   - **Instance Type**: Free
 4. Add **Environment Variables**:
    | Variable | Value | Description |
    |---|---|---|
    | `API_TOKEN` | `<YOUR_SECRET_TOKEN>` | Generate via: `python -c "import secrets; print(secrets.token_urlsafe(32))"` |
    | `PYTHON_VERSION` | `3.12.0` | Target Python version |
-   | `OUTPUT_DIR` | `/var/data/output` | Media output directory |
-   | `TEMP_DIR` | `/tmp/audio-downloader` | Fast scratch disk |
-   | `DB_PATH` | `/var/data/db/jobs.db` | Persistent SQLite database |
+   | `OUTPUT_DIR` | `data/output` | Media output directory |
+   | `TEMP_DIR` | `data/tmp` | Temporary scratch folder |
+   | `DB_PATH` | `data/db/jobs.db` | SQLite database |
    | `LOG_LEVEL` | `INFO` | Application log level |
    | `MAX_FILE_SIZE_MB` | `100` | Max audio file size |
    | `MAX_DURATION_SECONDS`| `1800` | 30 minutes limit |
-5. Add **Disks** (Under the Advanced tab):
-   - **Name**: `audio-data`
-   - **Mount Path**: `/var/data`
-   - **Size**: `1 GB`
-6. Click **Create Web Service**.
+5. Click **Create Web Service**.
 
 > [!NOTE]
 > `build.sh` automatically fetches a static Linux x86_64 FFmpeg release if ffmpeg is not already present on the Render host, making media extraction work seamlessly without root privileges or Docker.
