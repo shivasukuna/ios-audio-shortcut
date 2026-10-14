@@ -77,9 +77,27 @@ def download_audio(
         "restrictfilenames": True,
     }
 
-    # Duration filtering
+    last_error: list[str] = []
+
+    class _YtdlLogger:
+        def debug(self, msg: str) -> None:
+            pass
+        def warning(self, msg: str) -> None:
+            pass
+        def error(self, msg: str) -> None:
+            last_error.append(msg)
+
+    ydl_opts["logger"] = _YtdlLogger()
+
+    # Duration filtering (allow None/missing metadata from Instagram DASH streams)
     if max_duration_seconds > 0:
-        ydl_opts["match_filter"] = yt_dlp.utils.match_filter_func(f"duration <= {max_duration_seconds}")
+        def _duration_filter(info_dict: dict[str, Any], *, incomplete: bool) -> str | None:
+            dur = info_dict.get("duration")
+            if dur is not None and dur > max_duration_seconds:
+                return f"Duration {dur}s exceeds maximum {max_duration_seconds}s"
+            return None
+
+        ydl_opts["match_filter"] = _duration_filter
 
     # Audio extraction postprocessor
     if output_format in {"mp3", "aac", "opus", "m4a"}:
@@ -103,7 +121,11 @@ def download_audio(
 
     try:
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            ydl.download([url])
+            ret = ydl.download([url])
+            if ret != 0 and last_error:
+                raise DownloadException("download_failed", last_error[-1])
+    except DownloadException:
+        raise
     except yt_dlp.utils.DownloadError as exc:
         logger.warning("yt-dlp download failed", extra={"job_id": job_id, "error": str(exc)})
         raise DownloadException("download_failed", str(exc)) from exc
@@ -127,7 +149,8 @@ def download_audio(
     if not audio_files:
         # Clean up empty temp
         shutil.rmtree(job_temp, ignore_errors=True)
-        raise DownloadException("no_output", "No audio file produced")
+        err_msg = last_error[-1] if last_error else "No audio file produced"
+        raise DownloadException("no_output", err_msg)
 
     # Pick the largest or newest audio file
     source_file = sorted(audio_files, key=lambda f: f.stat().st_size, reverse=True)[0]
