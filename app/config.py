@@ -64,6 +64,8 @@ class Settings(BaseSettings):
         default_factory=lambda: [
             "instagram.com",
             "www.instagram.com",
+            "instagr.am",
+            "www.instagr.am",
         ]
     )
 

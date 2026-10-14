@@ -45,12 +45,16 @@ class TestBearerTokenVerification:
 class TestURLValidation:
     """Tests for URL validation with SSRF protection."""
 
-    ALLOWED = ["instagram.com", "www.instagram.com"]
+    ALLOWED = ["instagram.com", "www.instagram.com", "instagr.am", "www.instagr.am"]
 
     def test_valid_instagram_url(self):
         is_valid, reason = validate_url("https://www.instagram.com/reel/ABC123/", self.ALLOWED)
         assert is_valid is True
         assert reason == ""
+
+    def test_valid_instagr_am_url(self):
+        is_valid, reason = validate_url("https://instagr.am/p/ABC123/", self.ALLOWED)
+        assert is_valid is True
 
     def test_reject_youtube_url(self):
         is_valid, reason = validate_url("https://www.youtube.com/watch?v=test123", self.ALLOWED)
