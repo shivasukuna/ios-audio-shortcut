@@ -30,7 +30,8 @@ graph TD
     D --> E
     E -->|Invalid| F[Show Error Alert & Stop]
     E -->|Valid| G[Prompt Quality Menu]
-    G --> H[POST /api/v1/jobs]
+    G --> W[Ping /health/live to Wake Up Render]
+    W --> H[POST /api/v1/jobs]
     H --> I[Parse job_id]
     I --> J[Repeat Loop 60x with 3s Wait]
     J --> K[GET /api/v1/jobs/{job_id}]
@@ -134,7 +135,34 @@ Add a **Dictionary** action at the very top to hold your deployment credentials:
 
 ---
 
-### Step 6: Submit Job to API
+### Step 6: Wake Up Server (Render Cold-Start Handling)
+Render free-tier instances sleep after 15 minutes of inactivity. This step wakes the server up before submitting the job so requests don't time out:
+
+- **Action**: `Show Notification`
+  - Title: `Audio Downloader`
+  - Body: `Waking up server (Render cold-start)...`
+  - Play Sound: `OFF`
+- **Action**: `Repeat`
+  - Count: `15` (15 checks × 3s = up to 45 seconds wake-up window)
+  - **Action**: `Get Contents of URL`
+    - URL: `Config.baseURL/health/live`
+    - Method: `GET`
+  - **Action**: `Get Dictionary from Input`
+  - **Action**: `Get Dictionary Value`
+    - Key: `status`
+  - **Action**: `If`
+    - Condition: `is`
+    - Text: `alive`
+    - **Action**: `Exit Repeat`
+  - **Action**: `Otherwise`
+    - **Action**: `Wait`
+      - Time: `3 seconds`
+  - **Action**: `End If`
+- **Action**: `End Repeat`
+
+---
+
+### Step 7: Submit Job to API
 - **Action**: `Dictionary` (Construct JSON request body)
   - Key `url` (Text): `TargetURL`
   - Key `format` (Text): `mp3`
@@ -155,7 +183,7 @@ Add a **Dictionary** action at the very top to hold your deployment credentials:
 
 ---
 
-### Step 7: Polling Status Loop
+### Step 8: Polling Status Loop
 - **Action**: `Repeat`
   - Count: `60` (60 iterations × 3s = 3 minutes timeout)
 - **Action**: `Wait`
@@ -186,7 +214,7 @@ Add a **Dictionary** action at the very top to hold your deployment credentials:
 
 ---
 
-### Step 8: Fetch Download Token and Binary File
+### Step 9: Fetch Download Token and Binary File
 - **Action**: `Get Contents of URL`
   - URL: `Config.baseURL/api/v1/jobs/JobID/file`
   - Method: `GET`
@@ -206,7 +234,7 @@ Add a **Dictionary** action at the very top to hold your deployment credentials:
 
 ---
 
-### Step 9: Save File and Notify
+### Step 10: Save File and Notify
 - **Action**: `Save File`
   - Input: Renamed file
   - Ask Where to Save: `OFF`
